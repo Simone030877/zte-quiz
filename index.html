@@ -446,11 +446,13 @@ function loadAdmin(){
   fetch(GAS+"?action=get")
     .then(r=>r.json())
     .then(j=>{
-      adminData=j.data||[];
+      adminData=(j.data||[]).map(r=>typeof r === 'object' && !Array.isArray(r) ? r : {
+        date:r[0],name:r[1],store:r[2],score:parseInt(r[3])||0,total:parseInt(r[4])||27,pct:r[5],pass:r[6]
+      });
       renderAdmin();
     })
-    .catch(()=>{
-      document.getElementById('admin-info').textContent="Errore caricamento dati.";
+    .catch((err)=>{
+      document.getElementById('admin-info').textContent="Errore caricamento: "+err.message;
       document.getElementById('admin-info').className="info-bar empty";
     });
 }
