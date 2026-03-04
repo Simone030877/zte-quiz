@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZTE Quiz — Quante ne so!</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F4FA;min-height:100vh;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+button{font-family:inherit;cursor:pointer;}
+input{font-family:inherit;}
+
+/* WELCOME */
+#welcome{background:linear-gradient(150deg,#0D2147,#1A4FA0,#2E75D4);align-items:center;justify-content:center;padding:20px;}
+.card{background:#fff;border-radius:24px;padding:36px 28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.logo-box{background:#0D2147;border-radius:16px;display:inline-block;padding:10px 22px;margin-bottom:12px;}
+.logo-zte{color:#fff;font-family:Georgia,serif;font-weight:900;font-size:26px;letter-spacing:2px;}
+.logo-sub{color:#4DAAFF;font-size:10px;letter-spacing:3px;margin-top:-2px;}
+.card-title{font-family:Georgia,serif;font-size:20px;font-weight:700;color:#0D2147;margin-bottom:4px;}
+.card-sub{font-size:13px;color:#607090;margin-bottom:24px;}
+.field{margin-bottom:14px;}
+.field label{font-size:12px;font-weight:700;color:#607090;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.field input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #E4ECF5;font-size:15px;outline:none;}
+.field input:focus{border-color:#2E75D4;}
+.btn-primary{width:100%;background:linear-gradient(90deg,#0D2147,#1A4FA0);color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;margin-top:4px;}
+.btn-link{background:none;border:none;color:#9DAFC8;font-size:12px;text-decoration:underline;margin-top:16px;}
+.err{color:#E03535;font-size:13px;font-weight:600;margin-bottom:8px;}
+
+/* QUIZ */
+#quiz{background:#F0F4FA;}
+.quiz-header{background:#0D2147;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.quiz-title{color:#fff;font-weight:800;font-size:15px;}
+.quiz-title span{color:#4DAAFF;}
+.quiz-counter{color:#9DAFC8;font-size:13px;}
+.progress-bar{height:4px;background:#E4ECF5;}
+.progress-fill{height:4px;background:linear-gradient(90deg,#4DAAFF,#2E75D4);transition:width .4s;}
+.quiz-body{flex:1;padding:20px 16px;max-width:520px;margin:0 auto;width:100%;}
+.badge{background:#1A4FA0;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;display:inline-block;margin-bottom:14px;}
+.badge.gold{background:#F5A623;}
+.question-card{background:#fff;border-radius:16px;padding:20px 18px;margin-bottom:16px;box-shadow:0 2px 12px rgba(13,33,71,.08);}
+.question-num{font-size:13px;font-weight:700;color:#607090;margin-bottom:8px;}
+.question-text{font-size:16px;line-height:1.55;color:#0D2147;font-weight:500;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.option{background:#fff;border:1.5px solid #E4ECF5;border-radius:12px;padding:13px 16px;text-align:left;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.option.selected{background:#EAF2FF;border-color:#2E75D4;}
+.option.correct{background:#E8F7EF;border-color:#27AE60;}
+.option.wrong{background:#FDECEA;border-color:#E03535;}
+.option-letter{width:28px;height:28px;border-radius:8px;background:#E4ECF5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.option.selected .option-letter{background:#2E75D4;}
+.option.correct .option-letter{background:#27AE60;}
+.option.wrong .option-letter{background:#E03535;}
+.option-text{font-size:14px;line-height:1.4;color:#0D2147;}
+.option.correct .option-text,.option.wrong .option-text{font-weight:700;}
+.option.correct .option-text{color:#27AE60;}
+.option.wrong .option-text{color:#E03535;}
+.tf-options{display:flex;gap:12px;}
+.tf-btn{flex:1;background:#fff;border:1.5px solid #E4ECF5;border-radius:12px;padding:18px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:15px;font-weight:700;color:#0D2147;}
+.tf-btn.selected{background:#EAF2FF;border-color:#2E75D4;}
+.tf-btn.correct{background:#E8F7EF;border-color:#27AE60;color:#27AE60;}
+.tf-btn.wrong{background:#FDECEA;border-color:#E03535;color:#E03535;}
+.tf-emoji{font-size:26px;}
+.feedback{margin-top:14px;border-radius:12px;padding:12px 16px;border-left:4px solid;}
+.feedback.ok{background:#E8F7EF;border-color:#27AE60;}
+.feedback.ko{background:#FDECEA;border-color:#E03535;}
+.feedback-title{font-weight:700;}
+.feedback.ok .feedback-title{color:#27AE60;}
+.feedback.ko .feedback-title{color:#E03535;}
+.feedback-detail{font-size:13px;color:#607090;margin-top:2px;}
+.action-btn{width:100%;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;margin-top:18px;}
+.action-btn.confirm{background:linear-gradient(90deg,#0D2147,#1A4FA0);color:#fff;}
+.action-btn.confirm:disabled{background:#E4ECF5;color:#9DAFC8;cursor:not-allowed;}
+.action-btn.next{background:linear-gradient(90deg,#0D2147,#1A4FA0);color:#fff;}
+
+/* RESULT */
+#result{background:#F0F4FA;padding:24px 16px;}
+.result-inner{max-width:480px;margin:0 auto;}
+.result-hero{border-radius:20px;padding:32px 24px;text-align:center;color:#fff;margin-bottom:20px;}
+.result-hero.pass{background:linear-gradient(135deg,#27AE60,#1E8449);}
+.result-hero.fail{background:linear-gradient(135deg,#E03535,#922B21);}
+.result-emoji{font-size:52px;margin-bottom:8px;}
+.result-label{font-size:28px;font-weight:900;margin-bottom:4px;}
+.result-score{font-size:40px;font-weight:900;margin-bottom:4px;}
+.result-pct{font-size:18px;opacity:.9;}
+.result-name{font-size:13px;opacity:.7;margin-top:8px;}
+.result-status{margin-top:10px;font-size:12px;padding:6px 14px;background:rgba(255,255,255,.2);border-radius:20px;display:inline-block;}
+.wrong-box{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;}
+.wrong-title{font-weight:800;color:#0D2147;margin-bottom:12px;}
+.wrong-item{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #E4ECF5;}
+.wrong-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.wrong-q{font-size:13px;font-weight:600;color:#0D2147;margin-bottom:4px;}
+.wrong-a{font-size:12px;color:#27AE60;font-weight:700;}
+.badge-num{background:#0D2147;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px;}
+
+/* ADMIN */
+#adminLogin{background:linear-gradient(150deg,#0D2147,#1A4FA0);align-items:center;justify-content:center;padding:20px;}
+#admin{background:#F0F4FA;}
+.admin-header{background:#0D2147;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.admin-title{color:#fff;font-weight:800;font-size:16px;}
+.admin-title span{color:#4DAAFF;}
+.admin-sub{color:#9DAFC8;font-size:12px;}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.admin-btn{border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+.admin-btn.reload{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;}
+.admin-btn.back{background:rgba(255,255,255,.1);color:#fff;}
+.info-bar{padding:8px 20px;font-size:12px;font-weight:600;text-align:center;}
+.info-bar.ok{background:#E8F7EF;color:#1E8449;}
+.info-bar.empty{background:#FFF9E6;color:#8B6914;}
+.admin-body{max-width:720px;margin:0 auto;padding:20px 16px;}
+.pills{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+.pill{background:#F7F9FC;border-radius:12px;padding:10px 16px;min-width:80px;text-align:center;border:1px solid #E4ECF5;}
+.pill-val{font-size:22px;font-weight:800;}
+.pill-lbl{font-size:11px;color:#607090;margin-top:2px;}
+.tabs{background:#fff;border-radius:14px;padding:6px;display:inline-flex;gap:2px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);flex-wrap:wrap;}
+.tab{padding:9px 14px;border-radius:10px;border:none;background:transparent;color:#607090;font-weight:700;font-size:12px;cursor:pointer;}
+.tab.active{background:#0D2147;color:#fff;}
+.panel{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.panel-title{font-weight:800;color:#0D2147;margin-bottom:14px;}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #E4ECF5;}
+.row:last-child{border-bottom:none;}
+.row-name{font-weight:700;font-size:14px;}
+.row-sub{font-size:12px;color:#607090;}
+.row-score{font-weight:800;font-size:16px;text-align:right;}
+.row-esito{font-size:11px;text-align:right;}
+.green{color:#27AE60;}
+.red{color:#E03535;}
+.empty-msg{color:#607090;font-size:14px;padding:20px 0;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcome" class="screen active">
+  <div class="card" style="text-align:center">
+    <div class="logo-box">
+      <div class="logo-zte">ZTE</div>
+      <div class="logo-sub">FIELD FORCE</div>
+    </div>
+    <div class="card-title">Quante ne so!</div>
+    <div class="card-sub">27 domande · ~20 minuti · Sufficienza 75%</div>
+    <div class="field" style="text-align:left">
+      <label>Nome e Cognome</label>
+      <input id="inp-name" type="text" placeholder="es. Mario Rossi">
+    </div>
+    <div class="field" style="text-align:left">
+      <label>Punto Vendita</label>
+      <input id="inp-store" type="text" placeholder="es. Euronics Milano Centro">
+    </div>
+    <div id="welcome-err" class="err" style="display:none"></div>
+    <button class="btn-primary" onclick="startQuiz()">Inizia il Test →</button>
+    <br>
+    <button class="btn-link" onclick="showScreen('adminLogin')">Accesso Admin</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-title">ZTE <span>QUIZ</span></div>
+    <div class="quiz-counter" id="q-counter"></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="q-progress"></div></div>
+  <div class="quiz-body">
+    <div id="q-badges"></div>
+    <div class="question-card">
+      <div class="question-num" id="q-num"></div>
+      <div class="question-text" id="q-text"></div>
+    </div>
+    <div id="q-options"></div>
+    <div id="q-feedback" style="display:none"></div>
+    <button class="action-btn confirm" id="btn-confirm" disabled onclick="confirm_ans()">Conferma</button>
+    <button class="action-btn next" id="btn-next" style="display:none" onclick="nextQ()">Prossima →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen">
+  <div class="result-inner">
+    <div id="result-hero" class="result-hero">
+      <div class="result-emoji" id="res-emoji"></div>
+      <div class="result-label" id="res-label"></div>
+      <div class="result-score" id="res-score"></div>
+      <div class="result-pct" id="res-pct"></div>
+      <div class="result-name" id="res-name"></div>
+      <div class="result-status" id="res-status">⏳ Salvataggio in corso...</div>
+    </div>
+    <div id="wrong-list"></div>
+    <button class="btn-primary" style="display:block;width:100%;margin-top:0" onclick="showScreen('welcome')">← Torna alla Home</button>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLogin" class="screen">
+  <div class="card" style="text-align:center;max-width:360px">
+    <div style="font-size:32px;margin-bottom:8px">🔐</div>
+    <div style="font-weight:800;font-size:18px;color:#0D2147;margin-bottom:4px">Accesso Admin</div>
+    <div style="font-size:13px;color:#607090;margin-bottom:20px">Dashboard risultati ZTE Quiz</div>
+    <input id="admin-pwd" type="password" placeholder="Password admin" style="width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #E4ECF5;font-size:15px;outline:none;margin-bottom:10px" onkeydown="if(event.key==='Enter')adminLogin()">
+    <div id="admin-err" class="err" style="display:none"></div>
+    <button class="btn-primary" onclick="adminLogin()">Accedi</button>
+    <br>
+    <button class="btn-link" onclick="showScreen('welcome')">← Torna al quiz</button>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="admin" class="screen">
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">ZTE <span>ADMIN</span></div>
+      <div class="admin-sub">Dashboard · Google Sheets</div>
+    </div>
+    <div class="admin-actions">
+      <button class="admin-btn reload" onclick="loadAdmin()">🔄 Ricarica</button>
+      <button class="admin-btn back" onclick="showScreen('welcome')">← Esci</button>
+    </div>
+  </div>
+  <div id="admin-info" class="info-bar empty"></div>
+  <div class="admin-body">
+    <div class="pills">
+      <div class="pill"><div class="pill-val" id="p-tot">—</div><div class="pill-lbl">Tentativi</div></div>
+      <div class="pill"><div class="pill-val" id="p-avg">—</div><div class="pill-lbl">Media</div></div>
+      <div class="pill"><div class="pill-val" id="p-pass">—</div><div class="pill-lbl">Promossi</div></div>
+      <div class="pill"><div class="pill-val" id="p-stores">—</div><div class="pill-lbl">Negozi</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('overview',this)">📊 Overview</button>
+      <button class="tab" onclick="switchTab('people',this)">👤 Promoter</button>
+      <button class="tab" onclick="switchTab('stores',this)">🏪 Negozi</button>
+    </div>
+    <div id="tab-overview" class="panel">
+      <div class="panel-title">Ultimi tentativi</div>
+      <div id="overview-list"><div class="empty-msg">Caricamento...</div></div>
+    </div>
+    <div id="tab-people" class="panel" style="display:none">
+      <div class="panel-title">Per promoter</div>
+      <div id="people-list"><div class="empty-msg">Caricamento...</div></div>
+    </div>
+    <div id="tab-stores" class="panel" style="display:none">
+      <div class="panel-title">Per punto vendita</div>
+      <div id="stores-list"><div class="empty-msg">Caricamento...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS = "https://script.google.com/macros/s/AKfycbz0q4e_fvbegyXPp0WFhH1edmytlCI_IIDV7WrUdhDEWLwU5nht06tt4VTrupqCqzvJ/exec";
+const PWD = "ZTE2025admin";
+const PASS = 0.75;
+const LBL = ["A","B","C","D"];
+const SC = ["#1A4FA0","#7B2D8B","#0D2147","#2E75D4","#1A7A55","#B5600A","#8B3A3A"];
+const Q = [
+  {id:1,s:"L'Azienda",t:"mc",q:"In quale anno e in quale città è stata fondata ZTE Corporation?",o:["Nel 1975 a Pechino","Nel 1985 a Shenzhen","Nel 1990 a Shanghai","Nel 2000 a Hong Kong"],c:1},
+  {id:2,s:"L'Azienda",t:"tf",q:"ZTE investe più del 20% del proprio fatturato annuo nelle attività di Ricerca e Sviluppo.",c:true},
+  {id:3,s:"L'Azienda",t:"mc",q:"Quante domande di brevetto approvate vanta ZTE a livello globale?",o:["Oltre 5.000","Oltre 15.000","Oltre 33.000","Oltre 50.000"],c:2},
+  {id:4,s:"L'Azienda",t:"mc",q:"Quanti centri di Ricerca e Sviluppo conta ZTE a livello globale?",o:["9 centri","14 centri","19 centri","25 centri"],c:2},
+  {id:5,s:"L'Azienda",t:"tf",q:"ZTE detiene oltre 5.500 brevetti nel campo dell'intelligenza artificiale (AI).",c:true},
+  {id:6,s:"ZTE in Italia",t:"mc",q:"In quale anno ZTE ha iniziato la propria attività commerciale in Italia?",o:["Nel 2000","Nel 2003","Nel 2006","Nel 2010"],c:2},
+  {id:7,s:"ZTE in Italia",t:"tf",q:"L'Italia è oggi l'European Hub di ZTE e Milano diventerà la Capitale Europea del Gruppo.",c:true},
+  {id:8,s:"ZTE in Italia",t:"mc",q:"Con quale operatore ZTE è definito Fornitore Leader di CPE fissi e mobili?",o:["Vodafone","Wind Tre","TIM","Iliad"],c:2},
+  {id:9,s:"ZTE in Italia",t:"mc",q:"Da quale anno ZTE è fornitore storico di Vodafone per i dispositivi mobile?",o:["Dal 2000","Dal 2003","Dal 2006","Dal 2012"],c:2},
+  {id:10,s:"nubia Air",t:"mc",q:"Qual è lo spessore del nubia Air?",o:["5,5 mm","6,7 mm","7,5 mm","8,2 mm"],c:1},
+  {id:11,s:"nubia Air",t:"tf",q:"Il nubia Air è certificato IP69K: resiste a getti d'acqua ad alta pressione e temperature fino a 80 gradi.",c:true},
+  {id:12,s:"nubia Air",t:"mc",q:"Grazie alla funzionalità Memory Fusion, la RAM del nubia Air può arrivare fino a:",o:["12 GB","16 GB","20 GB","24 GB"],c:2},
+  {id:13,s:"nubia Air",t:"mc",q:"Che tipo di display monta il nubia Air e con quale refresh rate?",o:["IPS 90Hz","AMOLED 60Hz","AMOLED 120Hz","IPS 144Hz"],c:2},
+  {id:14,s:"nubia Neo 3/GT",t:"mc",q:"Quale frequenza di aggiornamento ha il display del nubia Neo 3/GT?",o:["60 Hz","90 Hz","120 Hz","144 Hz"],c:2},
+  {id:15,s:"nubia Neo 3/GT",t:"tf",q:"Il sistema di raffreddamento del nubia Neo 3/GT si chiama VC Cooling System.",c:true},
+  {id:16,s:"nubia Neo 3/GT",t:"mc",q:"Cosa fa la funzione Gaming Space del nubia Neo 3/GT?",o:["App store per videogiochi","Dedica tutta la potenza al gioco bloccando chiamate e notifiche","Modalità notte per giocare al buio","Servizio cloud gaming"],c:1},
+  {id:17,s:"nubia Neo 3/GT",t:"mc",q:"Qual è la potenza di ricarica rapida del nubia Neo 3 GT?",o:["20 W","33 W","45 W","66 W"],c:1},
+  {id:18,s:"Blade V70 / V70 Vita",t:"mc",q:"Quanti megapixel ha la fotocamera principale del Blade V70?",o:["50 MP","64 MP","108 MP","200 MP"],c:2},
+  {id:19,s:"Blade V70 / V70 Vita",t:"tf",q:"Il Blade V70 ha 256 GB di storage di serie, il doppio dei competitor nella stessa fascia.",c:true},
+  {id:20,s:"Blade V70 / V70 Vita",t:"mc",q:"Qual è la capacità della batteria del Blade V70 e V70 Vita?",o:["4.000 mAh","4.500 mAh","5.000 mAh","5.500 mAh"],c:2},
+  {id:21,s:"Blade A55 / A35",t:"mc",q:"Qual è la dimensione del display del Blade A55?",o:["6,1 pollici","6,4 pollici","6,75 pollici","7,0 pollici"],c:2},
+  {id:22,s:"Blade A55 / A35",t:"tf",q:"Il Blade A35 monta il sistema operativo Android GO 14.",c:true},
+  {id:23,s:"Blade A55 / A35",t:"mc",q:"A quale profilo di cliente è principalmente rivolto il Blade A55?",o:["Gamer e power user","Cliente Premium / Design","Cliente Pragmatico / Senior","Fotografo professionista"],c:2},
+  {id:24,s:"Tecniche di Vendita",t:"mc",q:"Un cliente dice: Ma Xiaomi è più famoso. Quale risposta è corretta?",o:["Sì, hai ragione","Con nubia paghi la sostanza: a parità di prezzo ti do il doppio della memoria (256GB vs 128GB)","Xiaomi ha problemi di assistenza","ZTE ha più brevetti"],c:1},
+  {id:25,s:"Tecniche di Vendita",t:"mc",q:"Nel posizionamento Ad ogni cliente il suo ZTE, il nubia Air è associato al claim:",o:["POWER & GAME","BEST VALUE TECH","STYLE & TECH","SMART CHOICE"],c:2},
+  {id:26,s:"Tecniche di Vendita",t:"tf",q:"Il Test della mano, far impugnare il telefono al cliente, è una tecnica raccomandata perché chi tocca compra.",c:true},
+  {id:27,s:"Tecniche di Vendita",t:"mc",q:"Quale competitor è posizionato contro il nubia Neo 3/GT nella guida?",o:["Samsung Galaxy S / iPhone","Xiaomi Poco X6 / Redmi Note Pro","Oppo Reno / Motorola G85","Nokia G60 / Sony Xperia"],c:1}
+];
+const SECS=[...new Set(Q.map(q=>q.s))];
+
+let cur=0, ans={}, chosen=null, confirmed=false;
+let userName="", userStore="";
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startQuiz(){
+  const n=document.getElementById('inp-name').value.trim();
+  const s=document.getElementById('inp-store').value.trim();
+  const err=document.getElementById('welcome-err');
+  if(!n||!s){err.textContent="Compila tutti i campi.";err.style.display="block";return;}
+  err.style.display="none";
+  userName=n; userStore=s;
+  cur=0; ans={}; chosen=null; confirmed=false;
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ(){
+  const q=Q[cur];
+  const tot=Q.length;
+  document.getElementById('q-counter').textContent=(cur+1)+"/"+tot;
+  document.getElementById('q-progress').style.width=(cur/tot*100)+"%";
+  const sc=SC[SECS.indexOf(q.s)%SC.length];
+  document.getElementById('q-badges').innerHTML=
+    '<span class="badge" style="background:'+sc+'">'+q.s+'</span>'+
+    (q.t==="tf"?'<span class="badge gold" style="margin-left:6px">Vero/Falso</span>':"");
+  document.getElementById('q-num').textContent="Domanda "+q.id+" di "+tot;
+  document.getElementById('q-text').textContent=q.q;
+  chosen=null; confirmed=false;
+  document.getElementById('q-feedback').style.display="none";
+  document.getElementById('btn-confirm').style.display="block";
+  document.getElementById('btn-confirm').disabled=true;
+  document.getElementById('btn-next').style.display="none";
+  if(cur===tot-1) document.getElementById('btn-next').textContent="Vedi Risultato →";
+  else document.getElementById('btn-next').textContent="Prossima →";
+  if(q.t==="mc"){
+    document.getElementById('q-options').innerHTML=q.o.map((opt,i)=>
+      '<button class="option" id="opt-'+i+'" onclick="selectOpt('+i+')">'+
+      '<span class="option-letter">'+LBL[i]+'</span>'+
+      '<span class="option-text">'+opt+'</span></button>'
+    ).join("");
+  } else {
+    document.getElementById('q-options').innerHTML=
+      '<div class="tf-options">'+
+      '<button class="tf-btn" id="opt-true" onclick="selectTF(true)"><span class="tf-emoji">✅</span>VERO</button>'+
+      '<button class="tf-btn" id="opt-false" onclick="selectTF(false)"><span class="tf-emoji">❌</span>FALSO</button>'+
+      '</div>';
+  }
+}
+
+function selectOpt(i){
+  if(confirmed)return;
+  chosen=i;
+  document.querySelectorAll('.option').forEach((el,idx)=>{
+    el.className="option"+(idx===i?" selected":"");
+  });
+  document.getElementById('btn-confirm').disabled=false;
+}
+
+function selectTF(v){
+  if(confirmed)return;
+  chosen=v;
+  document.getElementById('opt-true').className="tf-btn"+(v===true?" selected":"");
+  document.getElementById('opt-false').className="tf-btn"+(v===false?" selected":"");
+  document.getElementById('btn-confirm').disabled=false;
+}
+
+function confirm_ans(){
+  if(chosen===null)return;
+  confirmed=true;
+  ans[Q[cur].id]=chosen;
+  const q=Q[cur];
+  const ok=chosen===q.c;
+  if(q.t==="mc"){
+    document.querySelectorAll('.option').forEach((el,i)=>{
+      if(i===q.c) el.className="option correct";
+      else if(i===chosen&&!ok) el.className="option wrong";
+      else el.className="option";
+    });
+  } else {
+    document.getElementById('opt-true').className="tf-btn"+(true===q.c?"correct":chosen===true&&!ok?"wrong":"");
+    document.getElementById('opt-false').className="tf-btn"+(false===q.c?"correct":chosen===false&&!ok?"wrong":"");
+  }
+  const fb=document.getElementById('q-feedback');
+  fb.style.display="block";
+  fb.className="feedback "+(ok?"ok":"ko");
+  let detail="";
+  if(!ok){
+    if(q.t==="mc") detail="Risposta corretta: <strong>"+LBL[q.c]+") "+q.o[q.c]+"</strong>";
+    else detail="Risposta corretta: <strong>"+(q.c?"VERO":"FALSO")+"</strong>";
+  }
+  fb.innerHTML='<div class="feedback-title">'+(ok?"✓ Corretto!":"✗ Risposta errata")+'</div>'+
+    (detail?'<div class="feedback-detail">'+detail+'</div>':"");
+  document.getElementById('btn-confirm').style.display="none";
+  document.getElementById('btn-next').style.display="block";
+}
+
+function nextQ(){
+  if(cur<Q.length-1){cur++;renderQ();}
+  else showResult();
+}
+
+function showResult(){
+  const score=Q.reduce((a,q)=>a+(ans[q.id]===q.c?1:0),0);
+  const tot=Q.length;
+  const pct=Math.round(score/tot*100);
+  const pass=pct>=75;
+  showScreen('result');
+  document.getElementById('result-hero').className="result-hero "+(pass?"pass":"fail");
+  document.getElementById('res-emoji').textContent=pass?"🏆":"📚";
+  document.getElementById('res-label').textContent=pass?"PROMOSSO!":"DA RIVEDERE";
+  document.getElementById('res-score').textContent=score+"/"+tot;
+  document.getElementById('res-pct').textContent=pct+"% — "+(pass?"Sufficiente":"Insufficiente (min. 75%)");
+  document.getElementById('res-name').textContent=userName+" · "+userStore;
+  const wrong=Q.filter(q=>ans[q.id]!==q.c);
+  const wrongData=wrong.map(q=>({
+    id:q.id,section:q.s,question:q.q,
+    correctAnswer:q.t==="mc"?LBL[q.c]+") "+q.o[q.c]:(q.c?"VERO":"FALSO")
+  }));
+  let wHtml="";
+  if(wrong.length>0){
+    wHtml='<div class="wrong-box"><div class="wrong-title">📖 Risposte errate — da ripassare</div>';
+    wrong.forEach(q=>{
+      wHtml+='<div class="wrong-item"><div class="wrong-q"><span class="badge-num">'+q.id+'</span>'+q.q+'</div>'+
+        '<div class="wrong-a">✓ '+(q.t==="mc"?LBL[q.c]+") "+q.o[q.c]:(q.c?"VERO":"FALSO"))+'</div></div>';
+    });
+    wHtml+='</div>';
+  }
+  document.getElementById('wrong-list').innerHTML=wHtml;
+  // Save to Google Sheets
+  const entry={
+    date:new Date().toISOString(),
+    name:userName,store:userStore,
+    score,total:tot,pct:pct+"%",
+    pass:pass?"1":"0",
+    wrong:JSON.stringify(wrongData)
+  };
+  const params=new URLSearchParams({action:"save",...entry});
+  fetch(GAS+"?"+params.toString())
+    .then(r=>r.json())
+    .then(j=>{
+      document.getElementById('res-status').textContent=j.ok?"✅ Risultato salvato":"⚠️ Errore salvataggio";
+    })
+    .catch(()=>{
+      document.getElementById('res-status').textContent="⚠️ Errore salvataggio";
+    });
+}
+
+function adminLogin(){
+  const pwd=document.getElementById('admin-pwd').value;
+  const err=document.getElementById('admin-err');
+  if(pwd===PWD){err.style.display="none";showScreen('admin');loadAdmin();}
+  else{err.textContent="Password errata.";err.style.display="block";}
+}
+
+let adminData=[];
+let wrongData=[];
+function loadAdmin(){
+  document.getElementById('admin-info').textContent="Caricamento...";
+  fetch(GAS+"?action=get")
+    .then(r=>r.json())
+    .then(j=>{
+      adminData=(j.data||[]).map(r=>typeof r==='object'&&!Array.isArray(r)?r:{
+        date:r[0],name:r[1],store:r[2],score:parseInt(r[3])||0,total:parseInt(r[4])||27,pct:r[5],pass:r[6]
+      });
+      // Try to load wrong answers, but don't block if it fails
+      fetch(GAS+"?action=getWrong")
+        .then(r=>r.json())
+        .then(w=>{
+          wrongData=(w.data||[]).map(r=>typeof r==='object'&&!Array.isArray(r)?r:{
+            date:r[0],name:r[1],store:r[2],id:r[3],section:r[4],question:r[5],correctAnswer:r[6]
+          });
+        })
+        .catch(()=>{ wrongData=[]; })
+        .finally(()=>{ renderAdmin(); });
+    })
+    .catch((err)=>{
+      document.getElementById('admin-info').textContent="Errore caricamento: "+err.message;
+      document.getElementById('admin-info').className="info-bar empty";
+    });
+}
+
+function renderAdmin(){
+  const tot=adminData.length;
+  const avg=tot?Math.round(adminData.reduce((a,r)=>a+r.score,0)/tot*10)/10:0;
+  const pass=tot?Math.round(adminData.filter(r=>r.score/(r.total||27)>=PASS).length/tot*100):0;
+  const stores=[...new Set(adminData.map(r=>r.store))];
+  document.getElementById('p-tot').textContent=tot;
+  document.getElementById('p-avg').textContent=tot?avg+"/27":"—";
+  document.getElementById('p-pass').textContent=tot?pass+"%":"—";
+  document.getElementById('p-stores').textContent=stores.length;
+  const info=document.getElementById('admin-info');
+  info.textContent=tot?tot+" risultato/i nel database":"Nessun risultato ancora.";
+  info.className="info-bar "+(tot?"ok":"empty");
+  // Overview
+  let ov="";
+  if(!tot) ov='<div class="empty-msg">Nessun risultato ancora.</div>';
+  else [...adminData].reverse().slice(0,15).forEach(r=>{
+    const p=Math.round(r.score/(r.total||27)*100);const ok=p>=75;
+    ov+='<div class="row"><div><div class="row-name">'+r.name+'</div><div class="row-sub">'+r.store+' · '+new Date(r.date).toLocaleDateString("it-IT")+'</div></div>'+
+      '<div><div class="row-score '+(ok?"green":"red")+'">'+r.score+"/"+(r.total||27)+'</div>'+
+      '<div class="row-esito '+(ok?"green":"red")+'">'+(ok?"✓ Promosso":"✗ Insufficiente")+'</div></div></div>';
+  });
+  document.getElementById('overview-list').innerHTML=ov;
+  // People
+  const byP={};adminData.forEach(r=>{if(!byP[r.name])byP[r.name]=[];byP[r.name].push(r);});
+  let pe="";
+  if(!Object.keys(byP).length) pe='<div class="empty-msg">Nessun dato.</div>';
+  else Object.entries(byP).forEach(([n,a])=>{
+    const l=a[a.length-1];const best=Math.max(...a.map(r=>r.score));
+    const lt=l.total||27;const lp=Math.round(l.score/lt*100);
+    // Wrong answers for this person (latest attempt)
+    const myWrong=wrongData.filter(w=>w.name===n);
+    const wrongByQ={};myWrong.forEach(w=>{wrongByQ[w.id]=(wrongByQ[w.id]||0)+1;});
+    const topWrong=Object.entries(wrongByQ).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    pe+='<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #E4ECF5">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:8px">'+
+      '<div><div class="row-name">'+n+'</div><div class="row-sub">'+l.store+' · '+a.length+' tent.</div></div>'+
+      '<div style="text-align:right"><div class="row-score '+(lp>=75?"green":"red")+'">'+l.score+"/"+lt+'</div>'+
+      '<div class="row-sub">Best: '+best+"/"+lt+'</div></div></div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
+      a.map(r=>{const p=Math.round(r.score/(r.total||27)*100);const ok=p>=75;
+        return '<span style="background:'+(ok?"#E8F7EF":"#FDECEA")+';border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:'+(ok?"#27AE60":"#E03535")+'">'+r.score+"/"+(r.total||27)+'</span>';
+      }).join("")+'</div>'+
+      (topWrong.length?
+        '<div style="background:#FFF9E6;border-radius:10px;padding:10px 14px;border-left:3px solid #F5A623">'+
+        '<div style="font-size:11px;font-weight:700;color:#8B6914;margin-bottom:6px">⚠️ DOMANDE PIÙ SBAGLIATE</div>'+
+        topWrong.map(([qid,cnt])=>{
+          const q=Q.find(x=>x.id==qid);
+          return q?'<div style="font-size:12px;color:#607090;margin-bottom:3px"><strong>#'+qid+'</strong> '+
+            (q.q.length>60?q.q.substring(0,60)+"…":q.q)+' <span style="color:#E03535;font-weight:700">('+cnt+'x)</span></div>':""
+        }).join("")+'</div>':"")+
+      '</div>';
+  });
+  document.getElementById('people-list').innerHTML=pe;
+  // Stores
+  const byS={};adminData.forEach(r=>{if(!byS[r.store])byS[r.store]=[];byS[r.store].push(r);});
+  let st="";
+  if(!Object.keys(byS).length) st='<div class="empty-msg">Nessun dato.</div>';
+  else Object.entries(byS).sort((a,b)=>b[1].reduce((s,r)=>s+r.score,0)/b[1].length-a[1].reduce((s,r)=>s+r.score,0)/a[1].length)
+    .forEach(([sn,a],rank)=>{
+      const av=Math.round(a.reduce((s,r)=>s+r.score,0)/a.length*10)/10;
+      const t=a[0].total||27;const ap=Math.round(av/t*100);
+      const pc=a.filter(r=>r.score/(r.total||27)>=PASS).length;
+      const medal=rank===0?"🥇":rank===1?"🥈":rank===2?"🥉":"";
+      st+='<div class="row"><div style="flex:1"><div class="row-name">'+medal+" "+sn+'</div>'+
+        '<div class="row-sub">'+a.length+' tent. · '+pc+' promossi</div></div>'+
+        '<div><div class="row-score '+(ap>=75?"green":"red")+'">'+av+"/"+t+'</div>'+
+        '<div class="row-esito '+(ap>=75?"green":"red")+'">media</div></div></div>';
+    });
+  document.getElementById('stores-list').innerHTML=st;
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.style.display="none");
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).style.display="block";
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
